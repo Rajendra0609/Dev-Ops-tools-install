@@ -4,14 +4,14 @@
 echo "Hello, world!"
 
 #############
-mkdir -p $GOPATH/src/github.com/hashicorp && cd $_
+_
 git clone https://github.com/hashicorp/vault.git
 cd vault
 ############
-# make bootstrap
+ make bootstrap
 ################
-#make dev
+make dev
 
-sudo snap install vault
+#sudo snap install vault
 ############
 vault -version
