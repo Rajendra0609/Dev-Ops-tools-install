@@ -20,4 +20,12 @@ sudo apt-get install -y jenkins
 
 #############################
 
+sudo apt update
+
+ifconfig
+
+sudo apt upgrade
+
+
+
 echo "jenkins and java has installed!"
