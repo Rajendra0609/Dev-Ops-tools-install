@@ -16,8 +16,9 @@ echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
   https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
   /etc/apt/sources.list.d/jenkins.list > /dev/null
 sudo apt-get update
-sudo apt-get install -y jenkins
+sudo apt-cache madison jenkins
 
 #############################
 
-echo "jenkins and java has installed!"
+echo "and java has installed!"
+echo " check and install particular version of jenkins using sudo apt-get install jenkins=* -y"
