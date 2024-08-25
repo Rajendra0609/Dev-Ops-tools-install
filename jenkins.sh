@@ -22,3 +22,8 @@ sudo apt-cache madison jenkins
 
 echo "and java has installed!"
 echo " check and install particular version of jenkins using sudo apt-get install jenkins=* -y"
+sudo apt-get install jenkins=* -y
+sudo usermod -aG docker jenkins
+
+
+
