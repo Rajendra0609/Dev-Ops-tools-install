@@ -1,14 +1,18 @@
-wget https://services.gradle.org/distributions/gradle-${VERSION}-bin.zip -P /tmp
+export GRADLE_VERSION=8.10
+wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -P /tmp
 
-sudo unzip -d /opt/gradle /tmp/gradle-${VERSION}-bin.zip
+sudo groupadd gradle
+sudo useradd -r -g gradle -d /opt/gradle -s /sbin/nologin gradle
+sudo unzip -d /opt/gradle /tmp/gradle-*.zip 
+sudo chown -R gradle: /opt/gradle
+sudo vim /etc/profile.d/gradle.sh
+#!/bin/sh
+export GRADLE_HOME=/opt/gradle/gradle-*
+export PATH=${GRADLE_HOME}/bin:${PATH}
 
-sudo nano /etc/profile.d/gradle.sh
 
-export PATH=$PATH:/opt/gradle/
 
-sudo chmod +x /etc/profile.d/gradle.sh
-
+sudo chmod +x /etc/profile.d/gradle.sh  
 source /etc/profile.d/gradle.sh
 
-gradle -v
-
+gradle -v  
