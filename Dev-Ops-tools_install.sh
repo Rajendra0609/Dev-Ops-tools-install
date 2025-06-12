@@ -15,7 +15,7 @@ PROMETHEUS_VERSION="2.52.0"
 NODE_EXPORTER_VERSION="1.8.1"
 MAVEN_VERSION="3.9.7"
 GRADLE_VERSION="8.7"
-ZAP_VERSION="2.15.0"
+DEPENDENCY_CHECK_VERSION="9.0.7"
 PACKER_VERSION="1.10.2"
 VAGRANT_VERSION="2.4.1"
 ISTIO_VERSION="1.23.2"
@@ -44,12 +44,43 @@ get_linux_distribution() {
   esac
 }
 
+declare -A version_commands=(
+  [docker]="docker --version"
+  [kubectl]="kubectl version --client --short"
+  [ansible]="ansible --version | head -n1"
+  [terraform]="terraform version | head -n1"
+  [jenkins]="jenkins --version || echo 'Check via: systemctl status jenkins'"
+  [awscli]="aws --version"
+  [azurecli]="az version"
+  [gcloud]="gcloud --version | head -n1"
+  [helm]="helm version --short"
+  [grafana]="grafana-server -v"
+  [gitlab-runner]="gitlab-runner --version"
+  [vault]="vault version"
+  [consul]="consul version"
+  [istio]="istioctl version --short"
+  [openshift]="oc version --client"
+  [minikube]="minikube version"
+  [packer]="packer version"
+  [vagrant]="vagrant --version"
+  [lynis]="lynis --version"
+  [maven]="mvn -version | head -n1"
+  [gradle]="gradle --version | grep Gradle"
+  [dependency-check]="/opt/dependency-check/bin/dependency-check.sh --version"
+  [java]="java -version 2>&1 | head -n 1"
+  [git]="git --version"
+)
+
 install_tool() {
   local tool_name="$1"
   local install_cmd="$2"
   echo "Installing $tool_name..."
   eval "$install_cmd"
   echo "$tool_name installed successfully."
+  if [[ -n "${version_commands[$tool_name]}" ]]; then
+    echo "Installed version of $tool_name:"
+    eval "${version_commands[$tool_name]}"
+  fi
 }
 
 uninstall_tool() {
@@ -60,6 +91,7 @@ uninstall_tool() {
   echo "$tool_name uninstalled successfully."
 }
 
+# Distro-specific installs
 declare -A install_commands_ubuntu=(
   [docker]="sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg && sudo install -m 0755 -d /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg && echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null && sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
   [grafana]="wget $GRAFANA_DEB_URL && sudo dpkg -i $(basename $GRAFANA_DEB_URL) && sudo apt-get install -f -y && rm $(basename $GRAFANA_DEB_URL)"
@@ -67,6 +99,8 @@ declare -A install_commands_ubuntu=(
   [ansible]="sudo apt-get update && sudo apt-get install -y ansible"
   [lynis]="sudo apt-get update && sudo apt-get install -y lynis"
   [azurecli]="curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
+  [java]="echo 'java will be handled dynamically'"
+  [git]="sudo apt-get update && sudo apt-get install -y git"
 )
 declare -A uninstall_commands_ubuntu=(
   [docker]="sudo apt-get remove -y docker-ce docker-ce-cli containerd.io && sudo apt-get purge -y docker-ce docker-ce-cli containerd.io && sudo rm -rf /var/lib/docker"
@@ -75,6 +109,8 @@ declare -A uninstall_commands_ubuntu=(
   [ansible]="sudo apt-get remove -y ansible && sudo apt-get purge -y ansible"
   [lynis]="sudo apt-get remove -y lynis && sudo apt-get purge -y lynis"
   [azurecli]="sudo apt-get remove -y azure-cli && sudo apt-get purge -y azure-cli"
+  [java]="echo 'java will be handled dynamically'"
+  [git]="sudo apt-get remove -y git && sudo apt-get purge -y git"
 )
 
 declare -A install_commands_centos=(
@@ -84,6 +120,8 @@ declare -A install_commands_centos=(
   [ansible]="sudo yum install -y epel-release && sudo yum install -y ansible"
   [lynis]="sudo yum install -y epel-release && sudo yum install -y lynis"
   [azurecli]="sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc && sudo sh -c 'echo -e \"[azure-cli]\\nname=Azure CLI\\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\\nenabled=1\\ngpgcheck=1\\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc\" > /etc/yum.repos.d/azure-cli.repo' && sudo yum install -y azure-cli"
+  [java]="echo 'java will be handled dynamically'"
+  [git]="sudo yum install -y git"
 )
 declare -A uninstall_commands_centos=(
   [docker]="sudo yum remove -y docker-ce docker-ce-cli containerd.io && sudo rm -rf /var/lib/docker"
@@ -92,6 +130,8 @@ declare -A uninstall_commands_centos=(
   [ansible]="sudo yum remove -y ansible"
   [lynis]="sudo yum remove -y lynis"
   [azurecli]="sudo yum remove -y azure-cli"
+  [java]="echo 'java will be handled dynamically'"
+  [git]="sudo yum remove -y git"
 )
 
 declare -A install_commands_fedora=(
@@ -101,6 +141,8 @@ declare -A install_commands_fedora=(
   [ansible]="sudo dnf install -y ansible"
   [lynis]="sudo dnf install -y lynis"
   [azurecli]="sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc && sudo sh -c 'echo -e \"[azure-cli]\\nname=Azure CLI\\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\\nenabled=1\\ngpgcheck=1\\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc\" > /etc/yum.repos.d/azure-cli.repo' && sudo dnf install -y azure-cli"
+  [java]="echo 'java will be handled dynamically'"
+  [git]="sudo dnf install -y git"
 )
 declare -A uninstall_commands_fedora=(
   [docker]="sudo dnf remove -y docker-ce docker-ce-cli containerd.io && sudo rm -rf /var/lib/docker"
@@ -109,9 +151,11 @@ declare -A uninstall_commands_fedora=(
   [ansible]="sudo dnf remove -y ansible"
   [lynis]="sudo dnf remove -y lynis"
   [azurecli]="sudo dnf remove -y azure-cli"
+  [java]="echo 'java will be handled dynamically'"
+  [git]="sudo dnf remove -y git"
 )
 
-# Cross-distro (binary) installs
+# Cross-distro binary installs
 declare -A binary_installs=(
   [kubectl]="curl -LO https://dl.k8s.io/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/"
   [terraform]="curl -LO https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip && sudo mv terraform /usr/local/bin/ && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
@@ -122,7 +166,7 @@ declare -A binary_installs=(
   [node_exporter]="curl -LO https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz && tar xvf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz && sudo mv node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64/node_exporter /usr/local/bin/ && rm -rf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64*"
   [maven]="curl -LO https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && sudo tar xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt && sudo ln -sf /opt/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/local/bin/mvn && rm apache-maven-${MAVEN_VERSION}-bin.tar.gz"
   [gradle]="curl -LO https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip && sudo unzip gradle-${GRADLE_VERSION}-bin.zip -d /opt && sudo ln -sf /opt/gradle-${GRADLE_VERSION}/bin/gradle /usr/local/bin/gradle && rm gradle-${GRADLE_VERSION}-bin.zip"
-  [oswap]="wget https://github.com/zaproxy/zaproxy/releases/download/v${ZAP_VERSION}/ZAP_${ZAP_VERSION}_Linux.tar.gz && tar -xzf ZAP_${ZAP_VERSION}_Linux.tar.gz && sudo mv ZAP_${ZAP_VERSION} /opt/ && sudo ln -sf /opt/ZAP_${ZAP_VERSION}/zap.sh /usr/local/bin/zap && rm ZAP_${ZAP_VERSION}_Linux.tar.gz"
+  [dependency-check]="curl -LO https://github.com/jeremylong/DependencyCheck/releases/download/v${DEPENDENCY_CHECK_VERSION}/dependency-check-${DEPENDENCY_CHECK_VERSION}-release.zip && unzip dependency-check-${DEPENDENCY_CHECK_VERSION}-release.zip && sudo mv dependency-check /opt/ && sudo ln -sf /opt/dependency-check/bin/dependency-check.sh /usr/local/bin/dependency-check && rm dependency-check-${DEPENDENCY_CHECK_VERSION}-release.zip"
   [gitlab-runner]="sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64 && sudo chmod +x /usr/local/bin/gitlab-runner"
   [vault]="curl -LO https://releases.hashicorp.com/vault/1.16.2/vault_1.16.2_linux_amd64.zip && unzip vault_1.16.2_linux_amd64.zip && sudo mv vault /usr/local/bin/ && rm vault_1.16.2_linux_amd64.zip"
   [consul]="curl -LO https://releases.hashicorp.com/consul/1.17.2/consul_1.17.2_linux_amd64.zip && unzip consul_1.17.2_linux_amd64.zip && sudo mv consul /usr/local/bin/ && rm consul_1.17.2_linux_amd64.zip"
@@ -143,7 +187,7 @@ declare -A binary_uninstalls=(
   [node_exporter]="sudo rm /usr/local/bin/node_exporter"
   [maven]="sudo rm /usr/local/bin/mvn && sudo rm -rf /opt/apache-maven-*"
   [gradle]="sudo rm /usr/local/bin/gradle && sudo rm -rf /opt/gradle-*"
-  [oswap]="sudo rm /usr/local/bin/zap && sudo rm -rf /opt/ZAP_*"
+  [dependency-check]="sudo rm /usr/local/bin/dependency-check && sudo rm -rf /opt/dependency-check"
   [gitlab-runner]="sudo rm /usr/local/bin/gitlab-runner"
   [vault]="sudo rm /usr/local/bin/vault"
   [consul]="sudo rm /usr/local/bin/consul"
@@ -168,8 +212,31 @@ for tool in "${!install_commands_ubuntu[@]}" "${!binary_installs[@]}"; do
 done
 read -p "Your selection: " selected_tools
 
+JAVA_VERSION=""
 for tool in $selected_tools; do
-  # Distro-specific installs
+  # Prompt for Java version only if user selected java
+  if [[ "$tool" == "java" && -z "$JAVA_VERSION" ]]; then
+    echo "Select Java version to install:"
+    echo "1. Java 21 (latest LTS)"
+    echo "2. Java 17 (LTS)"
+    echo "3. Java 11 (LTS)"
+    read -p "Enter the number corresponding to your desired Java version [1/2/3, default: 1]: " java_choice
+    java_choice=${java_choice:-1}
+    case $java_choice in
+      1) JAVA_VERSION=21;;
+      2) JAVA_VERSION=17;;
+      3) JAVA_VERSION=11;;
+      *) echo "Invalid Java version choice. Exiting." && exit 1;;
+    esac
+    # Now patch the install/uninstall commands with the correct Java version for this run
+    install_commands_ubuntu[java]="sudo apt-get update && sudo apt-get install -y openjdk-${JAVA_VERSION}-jdk"
+    uninstall_commands_ubuntu[java]="sudo apt-get remove -y openjdk-${JAVA_VERSION}-jdk && sudo apt-get purge -y openjdk-${JAVA_VERSION}-jdk"
+    install_commands_centos[java]="sudo yum install -y java-${JAVA_VERSION}-openjdk-devel"
+    uninstall_commands_centos[java]="sudo yum remove -y java-${JAVA_VERSION}-openjdk && sudo yum remove -y java-${JAVA_VERSION}-openjdk-devel"
+    install_commands_fedora[java]="sudo dnf install -y java-${JAVA_VERSION}-openjdk-devel"
+    uninstall_commands_fedora[java]="sudo dnf remove -y java-${JAVA_VERSION}-openjdk && sudo dnf remove -y java-${JAVA_VERSION}-openjdk-devel"
+  fi
+
   if [[ "$action" == "install" ]]; then
     case "$DISTRO" in
       ubuntu)
@@ -182,7 +249,6 @@ for tool in $selected_tools; do
         [[ -v install_commands_fedora["$tool"] ]] && install_tool "$tool" "${install_commands_fedora[$tool]}"
         ;;
     esac
-    # Binary cross-distro tools
     if [[ -v binary_installs["$tool"] ]]; then
       install_tool "$tool" "${binary_installs[$tool]}"
     fi
@@ -198,7 +264,6 @@ for tool in $selected_tools; do
         [[ -v uninstall_commands_fedora["$tool"] ]] && uninstall_tool "$tool" "${uninstall_commands_fedora[$tool]}"
         ;;
     esac
-    # Binary cross-distro tools
     if [[ -v binary_uninstalls["$tool"] ]]; then
       uninstall_tool "$tool" "${binary_uninstalls[$tool]}"
     fi
