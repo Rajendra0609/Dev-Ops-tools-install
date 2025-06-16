@@ -3,7 +3,7 @@
 set -e
 
 # Tool Versions (as of June 2025)
-KUBECTL_VERSION="$(curl -s https://dl.k8s.io/release/stable.txt)"
+KUBECTL_VERSION="$(curl -L -s https://dl.k8s.io/release/stable.txt)"
 TERRAFORM_VERSION="1.8.5"
 JENKINS_REPO="https://pkg.jenkins.io"
 AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
