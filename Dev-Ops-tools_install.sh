@@ -2,23 +2,23 @@
 
 set -e
 
-# Tool Versions (as of June 2025)
-KUBECTL_VERSION="$(curl -s https://dl.k8s.io/release/stable.txt)"
-TERRAFORM_VERSION="1.8.5"
+# Tool Versions (as of June 2025, update below for latest)
+KUBECTL_VERSION="$(curl -L -s https://dl.k8s.io/release/stable.txt)"
+TERRAFORM_VERSION="1.8.7"
 JENKINS_REPO="https://pkg.jenkins.io"
 AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
-GOOGLE_CLOUD_SDK_URL="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-474.0.0-linux-x86_64.tar.gz"
+GOOGLE_CLOUD_SDK_URL="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-479.0.0-linux-x86_64.tar.gz"
 HELM_SCRIPT="https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
-GRAFANA_DEB_URL="https://dl.grafana.com/oss/release/grafana_11.0.0_amd64.deb"
-GRAFANA_RPM_URL="https://dl.grafana.com/oss/release/grafana-11.0.0-1.x86_64.rpm"
-PROMETHEUS_VERSION="2.52.0"
-NODE_EXPORTER_VERSION="1.8.1"
-MAVEN_VERSION="3.9.7"
-GRADLE_VERSION="8.7"
-DEPENDENCY_CHECK_VERSION="9.0.7"
-PACKER_VERSION="1.10.2"
-VAGRANT_VERSION="2.4.1"
-ISTIO_VERSION="1.23.2"
+GRAFANA_DEB_URL="https://dl.grafana.com/oss/release/grafana_11.1.0_amd64.deb"
+GRAFANA_RPM_URL="https://dl.grafana.com/oss/release/grafana-11.1.0-1.x86_64.rpm"
+PROMETHEUS_VERSION="2.53.0"
+NODE_EXPORTER_VERSION="1.8.2"
+MAVEN_VERSION="3.9.8"
+GRADLE_VERSION="8.8"
+DEPENDENCY_CHECK_VERSION="9.1.0"
+PACKER_VERSION="1.11.0"
+VAGRANT_VERSION="2.4.2"
+ISTIO_VERSION="1.24.0"
 
 clear
 echo "############################################################################"
@@ -43,6 +43,33 @@ get_linux_distribution() {
     *) echo "Invalid Linux distribution choice. Exiting." && exit 1;;
   esac
 }
+
+declare -A tool_images=(
+  [docker]="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png"
+  [kubectl]="https://upload.wikimedia.org/wikipedia/commons/6/67/Kubernetes_logo.svg"
+  [ansible]="https://upload.wikimedia.org/wikipedia/commons/2/24/Ansible_logo.svg"
+  [terraform]="https://www.terraform.io/assets/images/og-image-8b3e4f7d.png"
+  [jenkins]="https://www.jenkins.io/images/logos/jenkins/jenkins.png"
+  [awscli]="https://a0.awsstatic.com/libra-css/images/logos/aws_logo_smile_1200x630.png"
+  [azurecli]="https://azurecomcdn.azureedge.net/cvt-2e04e6e5d47e0e2a68b8b3ff2a9f7a4e62db8d3a993e3b9e5ac66dcd8e9c9813/images/page/services/cli/cli-og.png"
+  [gcloud]="https://cloud.google.com/images/products/logo-gcloud.png"
+  [helm]="https://helm.sh/img/helm.svg"
+  [grafana]="https://grafana.com/static/img/menu/grafana2.svg"
+  [gitlab-runner]="https://about.gitlab.com/images/press/logo/png/gitlab-icon-rgb.png"
+  [vault]="https://www.vaultproject.io/assets/images/logo-vault-861c1c7f.svg"
+  [consul]="https://www.consul.io/assets/images/logo-consul-8cbbfc6b.svg"
+  [istio]="https://istio.io/latest/favicons/android-chrome-192x192.png"
+  [openshift]="https://www.openshift.com/themes/custom/openshift/images/openshift-logo.svg"
+  [minikube]="https://minikube.sigs.k8s.io/docs/images/logo.png"
+  [packer]="https://www.packer.io/assets/images/og-image-8b3e4f7d.png"
+  [vagrant]="https://www.vagrantup.com/assets/images/og-image.png"
+  [lynis]="https://cisofy.com/images/lynis-logo.png"
+  [maven]="https://maven.apache.org/images/maven-logo-black-on-white.png"
+  [gradle]="https://gradle.org/images/gradle-phantom.svg"
+  [dependency-check]="https://jeremylong.github.io/DependencyCheck/images/DependencyCheck_Logo.png"
+  [java]="https://upload.wikimedia.org/wikipedia/en/3/30/Java_programming_language_logo.svg"
+  [git]="https://git-scm.com/images/logos/downloads/Git-Logo-2Color.png"
+)
 
 declare -A version_commands=(
   [docker]="docker --version"
@@ -160,7 +187,7 @@ declare -A binary_installs=(
   [kubectl]="curl -LO https://dl.k8s.io/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/"
   [terraform]="curl -LO https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip && sudo mv terraform /usr/local/bin/ && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
   [awscli]="curl \"$AWS_CLI_URL\" -o \"awscliv2.zip\" && unzip awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws/"
-  [gcloud]="curl -O $GOOGLE_CLOUD_SDK_URL && tar -xvzf google-cloud-sdk-474.0.0-linux-x86_64.tar.gz && ./google-cloud-sdk/install.sh"
+  [gcloud]="curl -O $GOOGLE_CLOUD_SDK_URL && tar -xvzf google-cloud-sdk-479.0.0-linux-x86_64.tar.gz && ./google-cloud-sdk/install.sh"
   [helm]="curl -fsSL -o get_helm.sh $HELM_SCRIPT && chmod 700 get_helm.sh && ./get_helm.sh"
   [prometheus]="curl -LO https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz && tar xvf prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz && sudo mv prometheus-${PROMETHEUS_VERSION}.linux-amd64/prometheus /usr/local/bin/ && sudo mv prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool /usr/local/bin/ && rm -rf prometheus-${PROMETHEUS_VERSION}.linux-amd64*"
   [node_exporter]="curl -LO https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz && tar xvf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz && sudo mv node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64/node_exporter /usr/local/bin/ && rm -rf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64*"
@@ -168,8 +195,8 @@ declare -A binary_installs=(
   [gradle]="curl -LO https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip && sudo unzip gradle-${GRADLE_VERSION}-bin.zip -d /opt && sudo ln -sf /opt/gradle-${GRADLE_VERSION}/bin/gradle /usr/local/bin/gradle && rm gradle-${GRADLE_VERSION}-bin.zip"
   [dependency-check]="curl -LO https://github.com/jeremylong/DependencyCheck/releases/download/v${DEPENDENCY_CHECK_VERSION}/dependency-check-${DEPENDENCY_CHECK_VERSION}-release.zip && unzip dependency-check-${DEPENDENCY_CHECK_VERSION}-release.zip && sudo mv dependency-check /opt/ && sudo ln -sf /opt/dependency-check/bin/dependency-check.sh /usr/local/bin/dependency-check && rm dependency-check-${DEPENDENCY_CHECK_VERSION}-release.zip"
   [gitlab-runner]="sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64 && sudo chmod +x /usr/local/bin/gitlab-runner"
-  [vault]="curl -LO https://releases.hashicorp.com/vault/1.16.2/vault_1.16.2_linux_amd64.zip && unzip vault_1.16.2_linux_amd64.zip && sudo mv vault /usr/local/bin/ && rm vault_1.16.2_linux_amd64.zip"
-  [consul]="curl -LO https://releases.hashicorp.com/consul/1.17.2/consul_1.17.2_linux_amd64.zip && unzip consul_1.17.2_linux_amd64.zip && sudo mv consul /usr/local/bin/ && rm consul_1.17.2_linux_amd64.zip"
+  [vault]="curl -LO https://releases.hashicorp.com/vault/1.17.0/vault_1.17.0_linux_amd64.zip && unzip vault_1.17.0_linux_amd64.zip && sudo mv vault /usr/local/bin/ && rm vault_1.17.0_linux_amd64.zip"
+  [consul]="curl -LO https://releases.hashicorp.com/consul/1.18.0/consul_1.18.0_linux_amd64.zip && unzip consul_1.18.0_linux_amd64.zip && sudo mv consul /usr/local/bin/ && rm consul_1.18.0_linux_amd64.zip"
   [istio]="curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$ISTIO_VERSION sh - && sudo mv istio-$ISTIO_VERSION/bin/istioctl /usr/local/bin/"
   [openshift]="curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz && tar -xvf openshift-client-linux.tar.gz && sudo mv oc /usr/local/bin/ && sudo mv kubectl /usr/local/bin/"
   [minikube]="curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64"
@@ -228,7 +255,6 @@ for tool in $selected_tools; do
       3) JAVA_VERSION=11;;
       *) echo "Invalid Java version choice. Exiting." && exit 1;;
     esac
-    # Now patch the install/uninstall commands with the correct Java version for this run
     install_commands_ubuntu[java]="sudo apt-get update && sudo apt-get install -y openjdk-${JAVA_VERSION}-jdk"
     uninstall_commands_ubuntu[java]="sudo apt-get remove -y openjdk-${JAVA_VERSION}-jdk && sudo apt-get purge -y openjdk-${JAVA_VERSION}-jdk"
     install_commands_centos[java]="sudo yum install -y java-${JAVA_VERSION}-openjdk-devel"
