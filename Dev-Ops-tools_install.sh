@@ -123,7 +123,7 @@ declare -A install_commands_ubuntu=(
   [docker]="sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg && sudo install -m 0755 -d /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg && echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null && sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
   [grafana]="wget $GRAFANA_DEB_URL && sudo dpkg -i $(basename $GRAFANA_DEB_URL) && sudo apt-get install -f -y && rm $(basename $GRAFANA_DEB_URL)"
   [jenkins]="curl -fsSL $JENKINS_REPO/debian/jenkins.io-2023.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null && echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] $JENKINS_REPO/debian binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null && sudo apt-get update && sudo apt-get install -y fontconfig openjdk-17-jre jenkins"
-  [ansible]="sudo apt-get update && sudo apt-get install -y ansible"
+  [ansible]="sudo apt-get update && sudo apt-get install software-properties-common && sudo apt-add-repository ppa:ansible/ansible && sudo apt-get install -y ansible"
   [lynis]="sudo apt-get update && sudo apt-get install -y lynis"
   [azurecli]="curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
   [java]="echo 'java will be handled dynamically'"
