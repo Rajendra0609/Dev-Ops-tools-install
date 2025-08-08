@@ -101,3 +101,12 @@ sudo kubeadm token create --print-join-command
 # Verify all nodes in the cluster are ready
 echo "Verify all nodes in the cluster are ready:"
 kubectl get nodes
+
+
+sudo kubeadm reset -f
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16
+mkdir -p $HOME/.kube
+sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
