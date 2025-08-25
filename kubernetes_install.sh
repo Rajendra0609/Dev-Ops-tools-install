@@ -227,3 +227,20 @@ bash
 Copy
 Edit
 sudo reboot
+
+#####################################workernode reset#########################
+
+sudo rm -rf /etc/kubernetes/kubelet.conf
+sudo rm -rf /etc/kubernetes/pki
+sudo kubeadm reset -f
+
+
+#######################################master node reset@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+sudo rm -rf /etc/cni/net.d
+
+sudo rm -rf /var/lib/kubelet/*
+sudo rm -rf /etc/kubernetes
+rm -rf $HOME/.kube
+sudo rm -rf $HOME/.kube/config file
+sudo kubeadm reset -f
