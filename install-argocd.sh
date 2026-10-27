@@ -131,9 +131,9 @@ fi
 # ----------------------------------------------------------------------------
 # 3. Install manifests
 # ----------------------------------------------------------------------------
-step "Applying ArgoCD install manifests (stable)"
+step "Applying ArgoCD install manifests server-side (stable, resolving field conflicts)"
 info "$MANIFEST_URL"
-kubectl apply -n "$NAMESPACE" -f "$MANIFEST_URL"
+kubectl apply --server-side --force-conflicts -n "$NAMESPACE" -f "$MANIFEST_URL"
 ok "Manifests applied."
 
 # ----------------------------------------------------------------------------
